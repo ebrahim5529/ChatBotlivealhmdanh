@@ -1,0 +1,199 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
+
+type Category = {
+    id: number;
+    name: string;
+};
+
+type Props = {
+    categories: Category[];
+};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'لوحة التحكم', href: '/dashboard' },
+    { title: 'إدارة العروض', href: '/admin/sales/packages' },
+    { title: 'إضافة عرض', href: '/admin/sales/packages/create' },
+];
+
+export default function PackageCreate({ categories }: Props) {
+    const { data, setData, post, processing, errors } = useForm({
+        offer_number: '',
+        category_id: '',
+        offer_type: '',
+        brand_name: '',
+        details: '',
+        start_date: '',
+        end_date: '',
+        location_link: '',
+        location_description: '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post('/admin/sales/packages');
+    };
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="إضافة عرض" />
+            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/admin/sales/packages">
+                            <ArrowRight className="size-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            إضافة عرض
+                        </h1>
+                        <p className="mt-1 text-gray-600 dark:text-gray-400">
+                            إضافة عرض جديد
+                        </p>
+                    </div>
+                </div>
+
+                <form
+                    onSubmit={handleSubmit}
+                    className="max-w-2xl space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+                >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="offer_number">رقم العرض</Label>
+                            <Input
+                                id="offer_number"
+                                value={data.offer_number}
+                                onChange={(e) => setData('offer_number', e.target.value)}
+                                placeholder="مثال: OFF-2024-001"
+                            />
+                            <InputError message={errors.offer_number} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="category_id">التصنيف</Label>
+                            <Select
+                                value={data.category_id}
+                                onValueChange={(v) => setData('category_id', v)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="اختر التصنيف" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((c) => (
+                                        <SelectItem key={c.id} value={String(c.id)}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.category_id} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="offer_type">نوع العرض</Label>
+                            <Input
+                                id="offer_type"
+                                value={data.offer_type}
+                                onChange={(e) => setData('offer_type', e.target.value)}
+                                placeholder="مثال: خصم"
+                            />
+                            <InputError message={errors.offer_type} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="brand_name">اسم البراند</Label>
+                            <Input
+                                id="brand_name"
+                                value={data.brand_name}
+                                onChange={(e) => setData('brand_name', e.target.value)}
+                                placeholder="مثال: براند 1"
+                            />
+                            <InputError message={errors.brand_name} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="start_date">تاريخ البداية</Label>
+                            <Input
+                                id="start_date"
+                                type="date"
+                                value={data.start_date}
+                                onChange={(e) => setData('start_date', e.target.value)}
+                            />
+                            <InputError message={errors.start_date} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="end_date">تاريخ النهاية</Label>
+                            <Input
+                                id="end_date"
+                                type="date"
+                                value={data.end_date}
+                                onChange={(e) => setData('end_date', e.target.value)}
+                            />
+                            <InputError message={errors.end_date} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="location_link">رابط الموقع</Label>
+                            <Input
+                                id="location_link"
+                                value={data.location_link}
+                                onChange={(e) => setData('location_link', e.target.value)}
+                                placeholder="https://example.com"
+                            />
+                            <InputError message={errors.location_link} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="details">التفاصيل</Label>
+                        <Textarea
+                            id="details"
+                            value={data.details}
+                            onChange={(e) => setData('details', e.target.value)}
+                            placeholder="وصف تفصيلي للعرض"
+                            rows={3}
+                        />
+                        <InputError message={errors.details} />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="location_description">وصف الموقع</Label>
+                        <Textarea
+                            id="location_description"
+                            value={data.location_description}
+                            onChange={(e) => setData('location_description', e.target.value)}
+                            placeholder="وصف الموقع"
+                            rows={2}
+                        />
+                        <InputError message={errors.location_description} />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <Button type="submit" disabled={processing}>
+                            {processing ? 'جاري الحفظ...' : 'حفظ'}
+                        </Button>
+                        <Button type="button" variant="outline" asChild>
+                            <Link href="/admin/sales/packages">إلغاء</Link>
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </AppLayout>
+    );
+}

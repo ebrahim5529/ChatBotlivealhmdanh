@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+
+<Files .env>
+    order allow,deny
+    Deny from all
+</Files>
+
+RewriteEngine on
+
+#prevent access to all folders except whitch has .httacess Options -MultiViews
+Options -Indexes
+
+# Force SSL
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# all to index
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/$1 [QSA,L]
+RewriteCond %{HTTP_HOST} ^.*$
+
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82 .php .php8 .phtml
+</IfModule>
