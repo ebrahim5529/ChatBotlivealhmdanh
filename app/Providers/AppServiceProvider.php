@@ -5,6 +5,7 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureViteForNonLocalEnvironments();
     }
 
     /**
@@ -46,5 +48,18 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    /**
+     * Ignore accidental public/hot uploads: outside the local environment, point the
+     * Vite hot file at a non-existent path so Laravel serves built assets from public/build.
+     */
+    protected function configureViteForNonLocalEnvironments(): void
+    {
+        if (app()->isLocal()) {
+            return;
+        }
+
+        Vite::useHotFile(storage_path('framework/vite-dev-server-disabled'));
     }
 }
