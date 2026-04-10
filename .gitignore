@@ -4,6 +4,8 @@
 
 
 /public/storage
+# لا ترفع ملف "hot" للإنتاج — يجبر Laravel على تحميل الأصول من خادم Vite المحلي (CORS على النطاق الحقيقي)
+/public/hot
 # تضمين مجلد البناء للنشر (Vite manifest + أصول التطبيق)
 !/public/build
 !/public/build/**
