@@ -43,7 +43,7 @@ export function DeleteConfirmDialog({
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="gap-2 sm:gap-0">
+                <DialogFooter className="gap-2">
                     <DialogClose asChild>
                         <Button variant="outline">إلغاء</Button>
                     </DialogClose>

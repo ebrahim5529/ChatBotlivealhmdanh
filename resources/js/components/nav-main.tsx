@@ -16,6 +16,7 @@ import {
     User,
     UserPlus,
     Shield,
+    MessageCircle,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -124,6 +125,19 @@ const navSections: NavSection[] = [
                 label: 'الأدوار والصلاحيات',
                 href: '/admin/roles',
                 icon: Shield,
+            },
+        ],
+    },
+    {
+        key: 'bot_responses',
+        label: 'ردود الشتات',
+        icon: MessageCircle,
+        pathPrefix: '/admin/bot-responses',
+        items: [
+            {
+                label: 'ردود الشتات',
+                href: '/admin/bot-responses',
+                icon: MessageCircle,
             },
         ],
     },

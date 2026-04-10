@@ -70,9 +70,9 @@ export default function PackageCreate({ categories }: Props) {
 
                 <form
                     onSubmit={handleSubmit}
-                    className="max-w-2xl space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+                    className="max-w-4xl space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
                 >
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-6 sm:grid-cols-2">
                         <div className="space-y-2">
                             <Label htmlFor="offer_number">رقم العرض</Label>
                             <Input
