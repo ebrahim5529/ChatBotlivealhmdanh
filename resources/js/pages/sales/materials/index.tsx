@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -22,7 +22,7 @@ type Props = {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'لوحة التحكم', href: '/dashboard' },
     { title: 'العروض', href: '/admin/sales/packages' },
-    { title: 'تصنيفات المواد', href: '/admin/sales/materials' },
+    { title: 'تصنيفات  ', href: '/admin/sales/materials' },
 ];
 
 export default function MaterialsIndex({ materials }: Props) {
@@ -30,15 +30,15 @@ export default function MaterialsIndex({ materials }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="تصنيفات المواد" />
+            <Head title="تصنيفات  " />
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            تصنيفات المواد
+                            تصنيفات  
                         </h1>
                         <p className="mt-1 text-gray-600 dark:text-gray-400">
-                            قائمة تصنيفات المواد
+                            قائمة تصنيفات  
                         </p>
                     </div>
                     <Button asChild>

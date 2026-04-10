@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';

@@ -10,7 +10,7 @@ import type { BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'لوحة التحكم', href: '/dashboard' },
     { title: 'العروض', href: '/admin/sales/packages' },
-    { title: 'تصنيفات المواد', href: '/admin/sales/materials' },
+    { title: 'تصنيفات  ', href: '/admin/sales/materials' },
     { title: 'إضافة تصنيف', href: '/admin/sales/materials/create' },
 ];
 

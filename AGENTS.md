@@ -2,7 +2,7 @@
 === foundation rules ===
 
 # Laravel Boost Guidelines
-
+npm run watch
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
 
 ## Foundational Context

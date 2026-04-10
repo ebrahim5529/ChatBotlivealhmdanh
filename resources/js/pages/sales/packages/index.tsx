@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Pencil, Trash2, Search, RotateCcw } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,15 +39,15 @@ type Props = {
         total: number;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
-    gradeLevels: string[];
     categories: Category[];
     filters: {
         search?: string;
-        grade_level?: string;
         category_id?: string;
-        per_page?: number;
     };
 };
+
+/** قيمة داخلية لـ Select تعني «الكل» (لا يُرسل للخادم) */
+const FILTER_ALL = '__all__';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'لوحة التحكم', href: '/dashboard' },
@@ -55,34 +55,31 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'قائمة العروض', href: '/admin/sales/packages' },
 ];
 
-export default function PackagesIndex({
-    packages,
-    gradeLevels,
-    categories,
-    filters,
-}: Props) {
+export default function PackagesIndex({ packages, categories, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
-    const [gradeLevel, setGradeLevel] = useState(filters.grade_level ?? '');
-    const [categoryId, setCategoryId] = useState(filters.category_id ?? '');
-    const [perPage, setPerPage] = useState(
-        String(filters.per_page ?? 10)
+    const [categoryId, setCategoryId] = useState(
+        filters.category_id ? String(filters.category_id) : FILTER_ALL
     );
+
+    useEffect(() => {
+        setSearch(filters.search ?? '');
+        setCategoryId(
+            filters.category_id ? String(filters.category_id) : FILTER_ALL
+        );
+    }, [filters.search, filters.category_id]);
 
     const applyFilters = useCallback(() => {
         router.get('/admin/sales/packages', {
-            search: search || undefined,
-            grade_level: gradeLevel || undefined,
-            category_id: categoryId || undefined,
-            per_page: perPage || undefined,
+            search: search.trim() || undefined,
+            category_id:
+                categoryId === FILTER_ALL ? undefined : categoryId,
         });
-    }, [search, gradeLevel, categoryId, perPage]);
+    }, [search, categoryId]);
 
     const clearFilters = useCallback(() => {
         setSearch('');
-        setGradeLevel('');
-        setCategoryId('');
-        setPerPage('10');
-        router.get('/admin/sales/packages');
+        setCategoryId(FILTER_ALL);
+        router.get('/admin/sales/packages', {}, { preserveState: false });
     }, []);
 
     const totalPackages = packages.total;
@@ -132,7 +129,7 @@ export default function PackagesIndex({
                 {/* نظام التصفية */}
                 <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex flex-wrap items-end gap-4">
-                        <div className="flex-1 min-w-[200px]">
+                        <div className="min-w-[200px] flex-1">
                             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 البحث
                             </label>
@@ -158,49 +155,14 @@ export default function PackagesIndex({
                                     <SelectValue placeholder="الكل" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value={FILTER_ALL}>
+                                        الكل
+                                    </SelectItem>
                                     {categories.map((c) => (
                                         <SelectItem key={c.id} value={String(c.id)}>
                                             {c.name}
                                         </SelectItem>
                                     ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="min-w-[150px]">
-                            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                الصف الدراسي
-                            </label>
-                            <Select
-                                value={gradeLevel}
-                                onValueChange={setGradeLevel}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="الكل" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {gradeLevels.map((g) => (
-                                        <SelectItem key={g} value={g}>
-                                            {g}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="min-w-[120px]">
-                            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                عدد النتائج
-                            </label>
-                            <Select
-                                value={perPage}
-                                onValueChange={setPerPage}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="10">10</SelectItem>
-                                    <SelectItem value="25">25</SelectItem>
-                                    <SelectItem value="50">50</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -217,7 +179,7 @@ export default function PackagesIndex({
                 {/* جدول العروض */}
                 <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[1000px]">
+                        <table className="w-full min-w-[900px]">
                             <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
                                 <tr>
                                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">

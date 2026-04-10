@@ -27,6 +27,6 @@ class SalesPackage extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(PackageCategory::class, 'category_id');
+        return $this->belongsTo(MaterialCategory::class, 'category_id');
     }
 }

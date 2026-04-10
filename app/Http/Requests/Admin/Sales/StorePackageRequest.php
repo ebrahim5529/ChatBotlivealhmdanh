@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\Sales;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePackageRequest extends FormRequest
@@ -12,13 +13,13 @@ class StorePackageRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'offer_number' => ['nullable', 'string', 'max:255'],
-            'category_id' => ['nullable', 'exists:package_categories,id'],
+            'category_id' => ['nullable', 'exists:material_categories,id'],
             'offer_type' => ['nullable', 'string', 'max:255'],
             'brand_name' => ['nullable', 'string', 'max:255'],
             'grade_level' => ['nullable', 'string', 'max:255'],

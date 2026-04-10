@@ -4,7 +4,6 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -12,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -86,21 +86,43 @@ export default function PackageCreate({ categories }: Props) {
 
                         <div className="space-y-2">
                             <Label htmlFor="category_id">التصنيف</Label>
-                            <Select
-                                value={data.category_id}
-                                onValueChange={(v) => setData('category_id', v)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="اختر التصنيف" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                القائمة من{' '}
+                                <Link
+                                    href="/admin/sales/materials"
+                                    className="text-primary underline-offset-4 hover:underline"
+                                >
+                                    تصنيفات 
+                                </Link>
+                                — أضف تصنيفاتاً من هناك إن لزم.
+                            </p>
+                            {categories.length === 0 ? (
+                                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+                                    لا توجد تصنيفات في النظام.{' '}
+                                    <Link
+                                        href="/admin/sales/materials/create"
+                                        className="font-medium text-primary underline-offset-4 hover:underline"
+                                    >
+                                        أضف تصنيفاً من هنا
+                                    </Link>
+                                </p>
+                            ) : (
+                                <Select
+                                    value={data.category_id}
+                                    onValueChange={(v) => setData('category_id', v)}
+                                >
+                                    <SelectTrigger id="category_id">
+                                        <SelectValue placeholder="اختر التصنيف" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((c) => (
+                                            <SelectItem key={c.id} value={String(c.id)}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                             <InputError message={errors.category_id} />
                         </div>
 

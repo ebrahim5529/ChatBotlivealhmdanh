@@ -13,4 +13,9 @@ class MaterialCategory extends Model
     {
         return $this->hasMany(SalesMaterial::class, 'category_id');
     }
+
+    public function packages(): HasMany
+    {
+        return $this->hasMany(SalesPackage::class, 'category_id');
+    }
 }

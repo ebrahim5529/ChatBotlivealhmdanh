@@ -19,7 +19,7 @@ type Props = {
 const breadcrumbs = (id: number): BreadcrumbItem[] => [
     { title: 'لوحة التحكم', href: '/dashboard' },
     { title: 'العروض', href: '/admin/sales/packages' },
-    { title: 'تصنيفات المواد', href: '/admin/sales/materials' },
+    { title: 'تصنيفات  ', href: '/admin/sales/materials' },
     { title: 'تعديل التصنيف', href: `/admin/sales/materials/${id}/edit` },
 ];
 

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\Sales;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Sales\StorePackageRequest;
 use App\Http\Requests\Admin\Sales\UpdatePackageRequest;
-use App\Models\PackageCategory;
+use App\Models\MaterialCategory;
 use App\Models\SalesPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,32 +20,28 @@ class PackageController extends Controller
             ->with('category')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('grade_level', 'like', "%{$search}%")
-                        ->orWhere('details', 'like', "%{$search}%")
+                    $q->where('details', 'like', "%{$search}%")
                         ->orWhere('offer_number', 'like', "%{$search}%")
                         ->orWhere('brand_name', 'like', "%{$search}%");
                 });
             })
-            ->when($request->grade_level, fn ($q, $v) => $q->where('grade_level', $v))
             ->when($request->category_id, fn ($q, $v) => $q->where('category_id', $v))
             ->latest()
-            ->paginate($request->integer('per_page', 10))
+            ->paginate(10)
             ->withQueryString();
 
-        $gradeLevels = SalesPackage::distinct()->pluck('grade_level');
-        $categories = PackageCategory::orderBy('name')->get();
+        $categories = MaterialCategory::orderBy('name')->get();
 
         return Inertia::render('sales/packages/index', [
             'packages' => $packages,
-            'gradeLevels' => $gradeLevels,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'grade_level', 'category_id', 'per_page']),
+            'filters' => $request->only(['search', 'category_id']),
         ]);
     }
 
     public function create(): Response
     {
-        $categories = PackageCategory::orderBy('name')->get();
+        $categories = MaterialCategory::orderBy('name')->get();
 
         return Inertia::render('sales/packages/create', [
             'categories' => $categories,
@@ -63,7 +59,7 @@ class PackageController extends Controller
 
     public function edit(SalesPackage $package): Response
     {
-        $categories = PackageCategory::orderBy('name')->get();
+        $categories = MaterialCategory::orderBy('name')->get();
 
         return Inertia::render('sales/packages/edit', [
             'package' => $package,
