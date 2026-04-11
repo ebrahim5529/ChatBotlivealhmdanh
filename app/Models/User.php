@@ -30,6 +30,15 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function hasPermission(string $menuKey, string $action): bool
+    {
+        if (!$this->role) {
+            return false;
+        }
+
+        return $this->role->hasPermission($menuKey, $action);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

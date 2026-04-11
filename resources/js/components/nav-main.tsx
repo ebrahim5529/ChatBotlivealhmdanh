@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ChevronDown,
     Headphones,
@@ -211,11 +211,33 @@ function NavSectionItem({
 
 export function NavMain() {
     const { isCurrentUrl, currentUrl } = useCurrentUrl();
+    const { auth } = usePage().props as any;
+
+    // Filter sections based on user permissions
+    const filteredSections = navSections.filter((section) => {
+        // Dashboard is always visible
+        if (section.key === 'dashboard') return true;
+
+        // Check if user has 'read' permission for this section
+        const menuKey = section.key;
+        const permissions: Record<string, string[]> = auth.permissions || {};
+
+        // Map section keys to permission menu keys
+        const permissionMap: Record<string, string> = {
+            'offers': 'packages',
+            'users': 'users',
+            'roles': 'roles',
+            'bot_responses': 'bot-responses',
+        };
+
+        const permissionKey = permissionMap[menuKey] || menuKey;
+        return permissions[permissionKey]?.includes('read') || false;
+    });
 
     return (
         <nav className="mt-8">
             <div className="space-y-1 px-4">
-                {navSections.map((section) => (
+                {filteredSections.map((section) => (
                     <NavSectionItem
                         key={section.key}
                         section={section}

@@ -14,6 +14,11 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
+type User = {
+    id: number;
+    name: string;
+};
+
 type Category = {
     id: number;
     name: string;
@@ -23,6 +28,7 @@ type Package = {
     id: number;
     offer_number: string | null;
     category: Category | null;
+    user: User | null;
     offer_type: string | null;
     brand_name: string | null;
     details: string | null;
@@ -30,6 +36,8 @@ type Package = {
     end_date: string | null;
     location_link: string | null;
     location_description: string | null;
+    look_location_link?: string | null;
+    images_base64?: string[] | null;
     created_at: string;
 };
 
@@ -195,6 +203,9 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                         البراند
                                     </th>
                                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
+                                        تم الإضافة بواسطة
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
                                         تاريخ البداية
                                     </th>
                                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
@@ -232,6 +243,9 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                 {pkg.brand_name || '-'}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                                                {pkg.user?.name || '-'}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                 {pkg.start_date

@@ -1,11 +1,27 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+
+type Permission = {
+    id: number;
+    action: string;
+    action_label: string;
+};
+
+type PermissionGroup = {
+    label: string;
+    permissions: Permission[];
+};
+
+type Props = {
+    permissions: Record<string, PermissionGroup>;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'لوحة التحكم', href: '/dashboard' },
@@ -13,14 +29,34 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'إضافة دور', href: '/admin/roles/create' },
 ];
 
-export default function RoleCreate() {
+export default function RoleCreate({ permissions }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
+        permissions: [] as number[],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/admin/roles');
+    };
+
+    const togglePermission = (permissionId: number) => {
+        const current = data.permissions;
+        if (current.includes(permissionId)) {
+            setData('permissions', current.filter(id => id !== permissionId));
+        } else {
+            setData('permissions', [...current, permissionId]);
+        }
+    };
+
+    const toggleAllPermissions = (permissionIds: number[]) => {
+        const current = data.permissions;
+        const allSelected = permissionIds.every(id => current.includes(id));
+        if (allSelected) {
+            setData('permissions', current.filter(id => !permissionIds.includes(id)));
+        } else {
+            setData('permissions', [...new Set([...current, ...permissionIds])]);
+        }
     };
 
     return (
@@ -38,25 +74,66 @@ export default function RoleCreate() {
                             إضافة دور
                         </h1>
                         <p className="mt-1 text-gray-600 dark:text-gray-400">
-                            إضافة دور جديد للمستخدمين
+                            إضافة دور جديد مع تحديد الصلاحيات
                         </p>
                     </div>
                 </div>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="max-w-xl space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
-                >
-                    <div className="space-y-2">
-                        <Label htmlFor="name">اسم الدور *</Label>
-                        <Input
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            placeholder="مثال: مدير"
-                            required
-                        />
-                        <InputError message={errors.name} />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="max-w-xl rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">اسم الدور *</Label>
+                            <Input
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="مثال: مدير"
+                                required
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+                        <h2 className="mb-4 text-lg font-semibold">الصلاحيات</h2>
+                        <div className="space-y-6">
+                            {Object.entries(permissions).map(([key, group]) => {
+                                const permissionIds = group.permissions.map(p => p.id);
+                                const allSelected = permissionIds.every(id => data.permissions.includes(id));
+                                const someSelected = permissionIds.some(id => data.permissions.includes(id)) && !allSelected;
+
+                                return (
+                                    <div key={key} className="rounded-lg border border-gray-100 p-4 dark:border-gray-700">
+                                        <div className="mb-3 flex items-center gap-2">
+                                            <Checkbox
+                                                id={`group-${key}`}
+                                                checked={allSelected}
+                                                data-state={someSelected ? 'indeterminate' : allSelected ? 'checked' : 'unchecked'}
+                                                onCheckedChange={() => toggleAllPermissions(permissionIds)}
+                                            />
+                                            <Label htmlFor={`group-${key}`} className="font-semibold">
+                                                {group.label}
+                                            </Label>
+                                        </div>
+                                        <div className="mr-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                            {group.permissions.map((permission) => (
+                                                <div key={permission.id} className="flex items-center gap-2">
+                                                    <Checkbox
+                                                        id={`perm-${permission.id}`}
+                                                        checked={data.permissions.includes(permission.id)}
+                                                        onCheckedChange={() => togglePermission(permission.id)}
+                                                    />
+                                                    <Label htmlFor={`perm-${permission.id}`} className="text-sm">
+                                                        {permission.action_label}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <InputError message={errors.permissions} />
                     </div>
 
                     <div className="flex gap-2">

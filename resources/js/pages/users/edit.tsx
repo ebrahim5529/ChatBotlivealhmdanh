@@ -37,7 +37,7 @@ export default function UserEdit({ user, roles }: Props) {
         name: user.name,
         email: user.email,
         password: '',
-        role_id: user.role_id ? String(user.role_id) : '',
+        role_id: user.role_id ? String(user.role_id) : 'none',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -116,7 +116,7 @@ export default function UserEdit({ user, roles }: Props) {
                                 <SelectValue placeholder="اختر الدور" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">بدون دور</SelectItem>
+                                <SelectItem value="none">بدون دور</SelectItem>
                                 {Object.entries(roles).map(([id, name]) => (
                                     <SelectItem key={id} value={id}>
                                         {name}

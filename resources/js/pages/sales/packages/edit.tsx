@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ImagePlus, X } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+
+const MAX_IMAGES = 20;
 
 type Category = {
     id: number;
@@ -31,6 +33,8 @@ type Package = {
     end_date: string | null;
     location_link: string | null;
     location_description: string | null;
+    look_location_link: string | null;
+    images_base64: string[] | null;
 };
 
 type Props = {
@@ -44,6 +48,15 @@ const breadcrumbs = (id: number): BreadcrumbItem[] => [
     { title: 'تعديل العرض', href: `/admin/sales/packages/${id}/edit` },
 ];
 
+function readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error ?? new Error('read failed'));
+        reader.readAsDataURL(file);
+    });
+}
+
 export default function PackageEdit({ package: pkg, categories }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         offer_number: pkg.offer_number ?? '',
@@ -55,7 +68,28 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
         end_date: pkg.end_date ?? '',
         location_link: pkg.location_link ?? '',
         location_description: pkg.location_description ?? '',
+        look_location_link: pkg.look_location_link ?? '',
+        images_base64: Array.isArray(pkg.images_base64) ? [...pkg.images_base64] : [],
     });
+
+    const handleNewImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const list = e.target.files ? Array.from(e.target.files) : [];
+        e.target.value = '';
+        if (list.length === 0) {
+            return;
+        }
+
+        const encoded = await Promise.all(list.map((f) => readFileAsDataUrl(f)));
+        const merged = [...data.images_base64, ...encoded].slice(0, MAX_IMAGES);
+        setData('images_base64', merged);
+    };
+
+    const removeImageAt = (index: number) => {
+        setData(
+            'images_base64',
+            data.images_base64.filter((_, i) => i !== index),
+        );
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -106,7 +140,7 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                                     href="/admin/sales/materials"
                                     className="text-primary underline-offset-4 hover:underline"
                                 >
-                                    تصنيفات 
+                                    تصنيفات
                                 </Link>
                             </p>
                             {categories.length === 0 ? (
@@ -193,6 +227,17 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                             />
                             <InputError message={errors.location_link} />
                         </div>
+
+                        <div className="space-y-2 sm:col-span-2">
+                            <Label htmlFor="look_location_link">رابط اللوكيشن</Label>
+                            <Input
+                                id="look_location_link"
+                                value={data.look_location_link}
+                                onChange={(e) => setData('look_location_link', e.target.value)}
+                                placeholder="رابط خرائط أو موقع اللوكيشن"
+                            />
+                            <InputError message={errors.look_location_link} />
+                        </div>
                     </div>
 
                     <div className="space-y-2">
@@ -217,6 +262,60 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                             rows={2}
                         />
                         <InputError message={errors.location_description} />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="package_images_edit">صور العرض (Base64)</Label>
+                        <p className="text-xs text-muted-foreground">
+                            الصور المحفوظة والجديدة تظهر أدناه؛ احذف ما تشاء ثم احفظ. حتى {MAX_IMAGES}{' '}
+                            صورة.
+                        </p>
+                        {data.images_base64.length > 0 && (
+                            <ul className="flex flex-wrap gap-3">
+                                {data.images_base64.map((src, index) => (
+                                    <li
+                                        key={`${index}-${src.slice(0, 48)}`}
+                                        className="relative inline-block rounded-lg border border-gray-200 dark:border-gray-600"
+                                    >
+                                        <img
+                                            src={src}
+                                            alt=""
+                                            className="h-24 w-24 rounded-lg object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute -right-2 -top-2 size-7 rounded-full shadow-md"
+                                            onClick={() => removeImageAt(index)}
+                                            aria-label="إزالة الصورة"
+                                        >
+                                            <X className="size-3.5" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button type="button" variant="outline" size="sm" asChild>
+                                <label
+                                    htmlFor="package_images_edit"
+                                    className="inline-flex cursor-pointer items-center gap-2"
+                                >
+                                    <ImagePlus className="size-4" />
+                                    إضافة صور
+                                </label>
+                            </Button>
+                            <Input
+                                id="package_images_edit"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                                multiple
+                                className="hidden"
+                                onChange={handleNewImagesChange}
+                            />
+                        </div>
+                        <InputError message={errors.images_base64} />
                     </div>
 
                     <div className="flex gap-2">

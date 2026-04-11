@@ -41,6 +41,10 @@ class UsersController extends Controller
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
 
+        if (isset($data['role_id']) && $data['role_id'] === 'none') {
+            $data['role_id'] = null;
+        }
+
         User::create($data);
 
         return redirect()
@@ -66,6 +70,10 @@ class UsersController extends Controller
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
+        }
+
+        if (isset($data['role_id']) && $data['role_id'] === 'none') {
+            $data['role_id'] = null;
         }
 
         $user->update($data);

@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ImagePlus, X } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+
+const MAX_IMAGES = 20;
 
 type Category = {
     id: number;
@@ -30,6 +32,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'إضافة عرض', href: '/admin/sales/packages/create' },
 ];
 
+function readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error ?? new Error('read failed'));
+        reader.readAsDataURL(file);
+    });
+}
+
 export default function PackageCreate({ categories }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         offer_number: '',
@@ -41,7 +52,28 @@ export default function PackageCreate({ categories }: Props) {
         end_date: '',
         location_link: '',
         location_description: '',
+        look_location_link: '',
+        images_base64: [] as string[],
     });
+
+    const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const list = e.target.files ? Array.from(e.target.files) : [];
+        e.target.value = '';
+        if (list.length === 0) {
+            return;
+        }
+
+        const encoded = await Promise.all(list.map((f) => readFileAsDataUrl(f)));
+        const merged = [...data.images_base64, ...encoded].slice(0, MAX_IMAGES);
+        setData('images_base64', merged);
+    };
+
+    const removeImageAt = (index: number) => {
+        setData(
+            'images_base64',
+            data.images_base64.filter((_, i) => i !== index),
+        );
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,7 +124,7 @@ export default function PackageCreate({ categories }: Props) {
                                     href="/admin/sales/materials"
                                     className="text-primary underline-offset-4 hover:underline"
                                 >
-                                    تصنيفات 
+                                    تصنيفات
                                 </Link>
                                 — أضف تصنيفاتاً من هناك إن لزم.
                             </p>
@@ -180,6 +212,17 @@ export default function PackageCreate({ categories }: Props) {
                             />
                             <InputError message={errors.location_link} />
                         </div>
+
+                        <div className="space-y-2 sm:col-span-2">
+                            <Label htmlFor="look_location_link">رابط اللوكيشن</Label>
+                            <Input
+                                id="look_location_link"
+                                value={data.look_location_link}
+                                onChange={(e) => setData('look_location_link', e.target.value)}
+                                placeholder="رابط خرائط أو موقع اللوكيشن"
+                            />
+                            <InputError message={errors.look_location_link} />
+                        </div>
                     </div>
 
                     <div className="space-y-2">
@@ -204,6 +247,60 @@ export default function PackageCreate({ categories }: Props) {
                             rows={2}
                         />
                         <InputError message={errors.location_description} />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="package_images">صور العرض (تُحفظ كـ Base64)</Label>
+                        <p className="text-xs text-muted-foreground">
+                            يُحوّل كل ملف إلى سلسلة Base64 (data URL) وتُخزَّن في قاعدة البيانات — حتى{' '}
+                            {MAX_IMAGES} صورة، صيغ: JPEG، PNG، WebP، GIF.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button type="button" variant="outline" size="sm" asChild>
+                                <label
+                                    htmlFor="package_images"
+                                    className="inline-flex cursor-pointer items-center gap-2"
+                                >
+                                    <ImagePlus className="size-4" />
+                                    اختر صوراً
+                                </label>
+                            </Button>
+                            <Input
+                                id="package_images"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                                multiple
+                                className="hidden"
+                                onChange={handleImagesChange}
+                            />
+                        </div>
+                        <InputError message={errors.images_base64} />
+                        {data.images_base64.length > 0 && (
+                            <ul className="mt-2 flex flex-wrap gap-3">
+                                {data.images_base64.map((src, index) => (
+                                    <li
+                                        key={`${index}-${src.slice(0, 48)}`}
+                                        className="relative inline-block rounded-lg border border-gray-200 dark:border-gray-600"
+                                    >
+                                        <img
+                                            src={src}
+                                            alt=""
+                                            className="h-24 w-24 rounded-lg object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute -right-2 -top-2 size-7 rounded-full shadow-md"
+                                            onClick={() => removeImageAt(index)}
+                                            aria-label="إزالة الصورة"
+                                        >
+                                            <X className="size-3.5" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
 
                     <div className="flex gap-2">

@@ -23,7 +23,11 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
-            'role_id' => ['nullable', 'exists:roles,id'],
+            'role_id' => ['nullable', function ($attribute, $value, $fail) {
+                if ($value !== 'none' && !\App\Models\Role::where('id', $value)->exists()) {
+                    $fail('الدور المختار غير صالح.');
+                }
+            }],
         ];
     }
 

@@ -109,7 +109,7 @@ export default function UserCreate({ roles }: Props) {
                                 <SelectValue placeholder="اختر الدور" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">بدون دور</SelectItem>
+                                <SelectItem value="none">بدون دور</SelectItem>
                                 {Object.entries(roles).map(([id, name]) => (
                                     <SelectItem key={id} value={id}>
                                         {name}
