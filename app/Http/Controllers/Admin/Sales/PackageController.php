@@ -23,6 +23,7 @@ class PackageController extends Controller
         }
         // Admin is determined by role name or having all permissions
         return $user->role->name === 'admin' ||
+               $user->role->name === 'مدير النظام' ||
                ($user->role->permissions->count() >= 20); // All CRUD permissions
     }
 

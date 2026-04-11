@@ -220,7 +220,7 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                 {packages.data.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={7}
+                                            colSpan={8}
                                             className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                                         >
                                             لا توجد عروض
