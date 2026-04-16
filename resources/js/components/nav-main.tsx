@@ -141,6 +141,19 @@ const navSections: NavSection[] = [
             },
         ],
     },
+    {
+        key: 'site_inquiries',
+        label: 'مواقع واستفسارات',
+        icon: FileText,
+        pathPrefix: '/admin/site-inquiries',
+        items: [
+            {
+                label: 'مواقع واستفسارات',
+                href: '/admin/site-inquiries',
+                icon: FileText,
+            },
+        ],
+    },
 ];
 
 function NavSectionItem({
@@ -228,6 +241,7 @@ export function NavMain() {
             'users': 'users',
             'roles': 'roles',
             'bot_responses': 'bot-responses',
+            'site_inquiries': 'site-inquiries',
         };
 
         const permissionKey = permissionMap[menuKey] || menuKey;

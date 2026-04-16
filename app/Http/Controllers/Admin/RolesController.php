@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\UpdateRoleRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -89,6 +88,7 @@ class RolesController extends Controller
             'packages' => 'العروض',
             'materials' => 'التصنيفات',
             'bot-responses' => 'ردود الشتات',
+            'site-inquiries' => 'مواقع واستفسارات',
             'users' => 'المستخدمين',
             'roles' => 'الأدوار والصلاحيات',
         ];

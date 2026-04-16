@@ -28,6 +28,7 @@ class AdminRoleSeeder extends Seeder
             'package_categories',
             'sales_packages',
             'bot_responses',
+            'site-inquiries',
             'settings',
         ];
 

@@ -16,6 +16,7 @@ class PermissionSeeder extends Seeder
             'packages',
             'materials',
             'bot-responses',
+            'site-inquiries',
             'users',
             'roles',
         ];
