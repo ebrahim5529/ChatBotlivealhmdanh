@@ -1,5 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Pencil, Trash2, Search, RotateCcw } from 'lucide-react';
+import {
+    Plus,
+    Pencil,
+    Trash2,
+    Search,
+    RotateCcw,
+    Image as ImageIcon,
+    Eye,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { Button } from '@/components/ui/button';
@@ -191,6 +199,9 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                             <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
                                 <tr>
                                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
+                                        صورة
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
                                         رقم العرض
                                     </th>
                                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
@@ -220,7 +231,7 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                 {packages.data.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={8}
+                                            colSpan={9}
                                             className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                                         >
                                             لا توجد عروض
@@ -232,6 +243,22 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                             key={pkg.id}
                                             className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-750"
                                         >
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    {pkg.images_base64?.[0] ? (
+                                                        <img
+                                                            src={pkg.images_base64[0]}
+                                                            alt=""
+                                                            className="h-8 w-8 rounded-md object-cover ring-1 ring-gray-200 dark:ring-gray-700"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                            —
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                                                 {pkg.offer_number || '-'}
                                             </td>
@@ -259,6 +286,18 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        asChild
+                                                    >
+                                                        <Link
+                                                            href={`/admin/sales/packages/${pkg.id}`}
+                                                            aria-label="عرض التفاصيل"
+                                                        >
+                                                            <Eye className="size-4" />
+                                                        </Link>
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -311,6 +350,7 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                     </div>
                 )}
             </div>
+
         </AppLayout>
     );
 }

@@ -20,6 +20,34 @@ test('authenticated users can view packages index', function () {
     $response->assertInertia(fn ($page) => $page->component('sales/packages/index'));
 });
 
+test('authenticated users can view package show page', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $category = MaterialCategory::query()->create(['name' => 'خصومات']);
+
+    $package = SalesPackage::query()->create([
+        'category_id' => $category->id,
+        'user_id' => $user->id,
+        'offer_number' => 'SHOW-1',
+        'offer_type' => 'نوع',
+        'brand_name' => 'براند',
+        'grade_level' => 'ثالث',
+        'details' => 'تفاصيل',
+        'start_date' => now()->toDateString(),
+        'end_date' => now()->addMonth()->toDateString(),
+        'images_base64' => ['data:image/png;base64,iVBORw0KGgo='],
+    ]);
+
+    $response = $this->get(route('admin.sales.packages.show', $package));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('sales/packages/show')
+        ->where('package.id', $package->id)
+    );
+});
+
 test('packages index exposes search and category filters from query string', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
@@ -48,6 +76,7 @@ test('packages index filters packages by search', function () {
 
     SalesPackage::query()->create([
         'category_id' => $category->id,
+        'user_id' => $user->id,
         'offer_number' => 'A-100',
         'offer_type' => 'نوع',
         'brand_name' => 'براند',
@@ -59,6 +88,7 @@ test('packages index filters packages by search', function () {
 
     SalesPackage::query()->create([
         'category_id' => $category->id,
+        'user_id' => $user->id,
         'offer_number' => 'B-200',
         'offer_type' => 'نوع',
         'brand_name' => 'آخر',

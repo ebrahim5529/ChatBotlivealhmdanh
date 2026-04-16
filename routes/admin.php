@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('sales')->name('sales.')->group(function () {
-        Route::resource('packages', PackageController::class)->except(['show']);
+        Route::resource('packages', PackageController::class);
         Route::resource('materials', MaterialController::class)->except(['show']);
     });
 

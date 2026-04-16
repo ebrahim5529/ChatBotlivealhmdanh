@@ -18,9 +18,10 @@ class PackageController extends Controller
     private function isAdmin(): bool
     {
         $user = Auth::user();
-        if (!$user || !$user->role) {
+        if (! $user || ! $user->role) {
             return false;
         }
+
         // Admin is determined by role name or having all permissions
         return $user->role->name === 'admin' ||
                $user->role->name === 'مدير النظام' ||
@@ -35,7 +36,7 @@ class PackageController extends Controller
         $packages = SalesPackage::query()
             ->with(['category', 'user'])
             // Filter by user unless admin
-            ->when(!$isAdmin, fn ($q) => $q->where('user_id', $user->id))
+            ->when(! $isAdmin, fn ($q) => $q->where('user_id', $user->id))
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('details', 'like', "%{$search}%")
@@ -66,6 +67,19 @@ class PackageController extends Controller
         ]);
     }
 
+    public function show(SalesPackage $package): Response
+    {
+        if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
+            abort(403, 'غير مصرح لك بعرض هذه الباقة');
+        }
+
+        $package->load(['category', 'user']);
+
+        return Inertia::render('sales/packages/show', [
+            'package' => $package,
+        ]);
+    }
+
     public function store(StorePackageRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -81,7 +95,7 @@ class PackageController extends Controller
     public function edit(SalesPackage $package): Response
     {
         // Check ownership unless admin
-        if (!$this->isAdmin() && $package->user_id !== Auth::id()) {
+        if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
             abort(403, 'غير مصرح لك بتعديل هذه الباقة');
         }
 
@@ -96,7 +110,7 @@ class PackageController extends Controller
     public function update(UpdatePackageRequest $request, SalesPackage $package): RedirectResponse
     {
         // Check ownership unless admin
-        if (!$this->isAdmin() && $package->user_id !== Auth::id()) {
+        if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
             abort(403, 'غير مصرح لك بتعديل هذه الباقة');
         }
 
@@ -110,7 +124,7 @@ class PackageController extends Controller
     public function destroy(SalesPackage $package): RedirectResponse
     {
         // Check ownership unless admin
-        if (!$this->isAdmin() && $package->user_id !== Auth::id()) {
+        if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
             abort(403, 'غير مصرح لك بحذف هذه الباقة');
         }
 
