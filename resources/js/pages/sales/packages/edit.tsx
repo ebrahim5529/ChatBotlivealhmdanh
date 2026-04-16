@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowRight, ImagePlus, X } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const MAX_IMAGES = 20;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Category = {
     id: number;
@@ -72,6 +74,8 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
         images_base64: Array.isArray(pkg.images_base64) ? [...pkg.images_base64] : [],
     });
 
+    const [imagesSizeError, setImagesSizeError] = useState<string | null>(null);
+
     const handleNewImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const list = e.target.files ? Array.from(e.target.files) : [];
         e.target.value = '';
@@ -79,7 +83,20 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
             return;
         }
 
-        const encoded = await Promise.all(list.map((f) => readFileAsDataUrl(f)));
+        const tooLarge = list.filter((f) => f.size > MAX_IMAGE_SIZE_BYTES);
+        const allowed = list.filter((f) => f.size <= MAX_IMAGE_SIZE_BYTES);
+
+        if (tooLarge.length > 0) {
+            setImagesSizeError('حجم الصورة يجب ألا يتجاوز 10 ميجابايت.');
+        } else {
+            setImagesSizeError(null);
+        }
+
+        if (allowed.length === 0) {
+            return;
+        }
+
+        const encoded = await Promise.all(allowed.map((f) => readFileAsDataUrl(f)));
         const merged = [...data.images_base64, ...encoded].slice(0, MAX_IMAGES);
         setData('images_base64', merged);
     };
@@ -315,6 +332,7 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                                 onChange={handleNewImagesChange}
                             />
                         </div>
+                        <InputError message={imagesSizeError ?? undefined} />
                         <InputError message={errors.images_base64} />
                     </div>
 
