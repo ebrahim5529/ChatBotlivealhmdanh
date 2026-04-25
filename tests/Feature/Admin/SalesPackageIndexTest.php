@@ -36,7 +36,7 @@ test('authenticated users can view package show page', function () {
         'details' => 'تفاصيل',
         'start_date' => now()->toDateString(),
         'end_date' => now()->addMonth()->toDateString(),
-        'images_base64' => ['data:image/png;base64,iVBORw0KGgo='],
+        'image_paths' => [],
     ]);
 
     $response = $this->get(route('admin.sales.packages.show', $package));

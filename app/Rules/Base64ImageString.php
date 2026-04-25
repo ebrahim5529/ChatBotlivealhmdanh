@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class Base64ImageString implements ValidationRule
 {
-    private const int MAX_LENGTH = 15_728_640;
+    private const MAX_LENGTH = 15_728_640;
 
     /**
      * @param  Closure(string): void  $fail

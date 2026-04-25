@@ -3,24 +3,26 @@
 use App\Models\MaterialCategory;
 use App\Models\SalesPackage;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
-/** 1×1 PNG كـ data URL */
-const TINY_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+test('storing a package persists image_paths and look_location_link', function () {
+    Storage::fake('local');
 
-test('storing a package persists images_base64 and look_location_link', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
     $category = MaterialCategory::query()->create(['name' => 'تصنيف']);
-
-    $second = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAwUBAScYX0UAAAAASUVORK5CYII=';
 
     $response = $this->post(route('admin.sales.packages.store'), [
         'category_id' => $category->id,
         'offer_number' => 'OFF-B64-1',
         'details' => 'تفاصيل',
         'look_location_link' => 'https://maps.example.com/?q=1',
-        'images_base64' => [TINY_PNG_DATA_URL, $second],
+        'images' => [
+            UploadedFile::fake()->image('a.png'),
+            UploadedFile::fake()->image('b.png'),
+        ],
     ]);
 
     $response->assertRedirect(route('admin.sales.packages.index'));
@@ -29,11 +31,15 @@ test('storing a package persists images_base64 and look_location_link', function
 
     expect($package)->not->toBeNull();
     expect($package->look_location_link)->toBe('https://maps.example.com/?q=1');
-    expect($package->images_base64)->toBeArray()->toHaveCount(2);
-    expect($package->images_base64[0])->toStartWith('data:image/png;base64,');
+    expect($package->image_paths)->toBeArray()->toHaveCount(2);
+    expect($package->image_paths[0])->toStartWith("private/admin/sales/packages/{$package->id}/");
+
+    Storage::disk('local')->assertExists($package->image_paths[0]);
 });
 
-test('updating a package replaces images_base64', function () {
+test('updating a package replaces image_paths', function () {
+    Storage::fake('local');
+
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -41,6 +47,7 @@ test('updating a package replaces images_base64', function () {
 
     $package = SalesPackage::query()->create([
         'category_id' => $category->id,
+        'user_id' => $user->id,
         'offer_number' => 'X',
         'offer_type' => 'نوع',
         'brand_name' => 'براند',
@@ -48,19 +55,25 @@ test('updating a package replaces images_base64', function () {
         'details' => 'تفاصيل',
         'start_date' => now()->toDateString(),
         'end_date' => now()->addMonth()->toDateString(),
-        'images_base64' => [TINY_PNG_DATA_URL],
+        'image_paths' => ['private/admin/sales/packages/1/old.png'],
     ]);
 
-    $replacement = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAwUBAScYX0UAAAAASUVORK5CYII=';
+    $oldPath = "private/admin/sales/packages/{$package->id}/old.png";
+    $package->update(['image_paths' => [$oldPath]]);
+    Storage::disk('local')->put($oldPath, 'old');
 
     $this->put(route('admin.sales.packages.update', $package), [
         'offer_number' => 'X',
         'category_id' => $category->id,
-        'images_base64' => [$replacement],
+        'retained_image_paths' => [],
+        'images' => [
+            UploadedFile::fake()->image('new.png'),
+        ],
     ]);
 
     $package->refresh();
 
-    expect($package->images_base64)->toBeArray()->toHaveCount(1);
-    expect($package->images_base64[0])->toBe($replacement);
+    expect($package->image_paths)->toBeArray()->toHaveCount(1);
+    expect($package->image_paths[0])->toStartWith("private/admin/sales/packages/{$package->id}/");
+    Storage::disk('local')->assertMissing($oldPath);
 });

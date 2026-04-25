@@ -46,6 +46,7 @@ type Package = {
     location_description: string | null;
     look_location_link?: string | null;
     images_base64?: string[] | null;
+    image_paths?: string[] | null;
     created_at: string;
 };
 
@@ -245,7 +246,14 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                         >
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
-                                                    {pkg.images_base64?.[0] ? (
+                                                    {pkg.image_paths?.[0] ? (
+                                                        <img
+                                                            src={`/admin/sales/packages/${pkg.id}/images/${encodeURIComponent(pkg.image_paths[0].split('/').pop() ?? '')}`}
+                                                            alt=""
+                                                            className="h-8 w-8 rounded-md object-cover ring-1 ring-gray-200 dark:ring-gray-700"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : pkg.images_base64?.[0] ? (
                                                         <img
                                                             src={pkg.images_base64[0]}
                                                             alt=""

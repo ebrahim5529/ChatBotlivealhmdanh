@@ -34,15 +34,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'إضافة عرض', href: '/admin/sales/packages/create' },
 ];
 
-function readFileAsDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(reader.error ?? new Error('read failed'));
-        reader.readAsDataURL(file);
-    });
-}
-
 export default function PackageCreate({ categories }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         offer_number: '',
@@ -55,7 +46,7 @@ export default function PackageCreate({ categories }: Props) {
         location_link: '',
         location_description: '',
         look_location_link: '',
-        images_base64: [] as string[],
+        images: [] as File[],
     });
 
     const [imagesSizeError, setImagesSizeError] = useState<string | null>(null);
@@ -80,21 +71,20 @@ export default function PackageCreate({ categories }: Props) {
             return;
         }
 
-        const encoded = await Promise.all(allowed.map((f) => readFileAsDataUrl(f)));
-        const merged = [...data.images_base64, ...encoded].slice(0, MAX_IMAGES);
-        setData('images_base64', merged);
+        const merged = [...data.images, ...allowed].slice(0, MAX_IMAGES);
+        setData('images', merged);
     };
 
     const removeImageAt = (index: number) => {
         setData(
-            'images_base64',
-            data.images_base64.filter((_, i) => i !== index),
+            'images',
+            data.images.filter((_, i) => i !== index),
         );
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/sales/packages');
+        post('/admin/sales/packages', { forceFormData: true });
     };
 
     return (
@@ -267,10 +257,10 @@ export default function PackageCreate({ categories }: Props) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="package_images">صور العرض (تُحفظ كـ Base64)</Label>
+                        <Label htmlFor="package_images">صور العرض</Label>
                         <p className="text-xs text-muted-foreground">
-                            يُحوّل كل ملف إلى سلسلة Base64 (data URL) وتُخزَّن في قاعدة البيانات — حتى{' '}
-                            {MAX_IMAGES} صورة، صيغ: JPEG، PNG، WebP، GIF.
+                            يتم رفع الصور وتخزينها بشكل محمي داخل لوحة الإدارة — حتى {MAX_IMAGES} صورة،
+                            صيغ: JPEG، PNG، WebP، GIF.
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
                             <Button type="button" variant="outline" size="sm" asChild>
@@ -292,16 +282,16 @@ export default function PackageCreate({ categories }: Props) {
                             />
                         </div>
                         <InputError message={imagesSizeError ?? undefined} />
-                        <InputError message={errors.images_base64} />
-                        {data.images_base64.length > 0 && (
+                        <InputError message={errors.images} />
+                        {data.images.length > 0 && (
                             <ul className="mt-2 flex flex-wrap gap-3">
-                                {data.images_base64.map((src, index) => (
+                                {data.images.map((file, index) => (
                                     <li
-                                        key={`${index}-${src.slice(0, 48)}`}
+                                        key={`${index}-${file.name}-${file.size}`}
                                         className="relative inline-block rounded-lg border border-gray-200 dark:border-gray-600"
                                     >
                                         <img
-                                            src={src}
+                                            src={URL.createObjectURL(file)}
                                             alt=""
                                             className="h-24 w-24 rounded-lg object-cover"
                                         />

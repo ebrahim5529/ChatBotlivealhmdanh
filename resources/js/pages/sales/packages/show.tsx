@@ -36,6 +36,7 @@ type Package = {
     location_description: string | null;
     look_location_link: string | null;
     images_base64: string[] | null;
+    image_paths?: string[] | null;
     created_at: string;
 };
 
@@ -77,9 +78,17 @@ export default function PackageShow({ package: pkg }: Props) {
     );
 
     const images = useMemo(() => {
+        if (Array.isArray(pkg.image_paths) && pkg.image_paths.length > 0) {
+            return pkg.image_paths
+                .filter(Boolean)
+                .map((path) => {
+                    const name = path.split('/').pop() ?? '';
+                    return `/admin/sales/packages/${pkg.id}/images/${encodeURIComponent(name)}`;
+                });
+        }
         if (!Array.isArray(pkg.images_base64)) return [];
         return pkg.images_base64.filter(Boolean);
-    }, [pkg.images_base64]);
+    }, [pkg.id, pkg.image_paths, pkg.images_base64]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs(pkg.id)}>

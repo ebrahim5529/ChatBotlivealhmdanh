@@ -9,7 +9,11 @@ use App\Models\MaterialCategory;
 use App\Models\SalesPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -85,7 +89,27 @@ class PackageController extends Controller
         $data = $request->validated();
         $data['user_id'] = Auth::id();
 
-        SalesPackage::create($data);
+        unset($data['images']);
+
+        $package = SalesPackage::create($data);
+
+        $paths = [];
+        /** @var array<int, UploadedFile> $images */
+        $images = $request->file('images', []);
+        foreach ($images as $image) {
+            $paths[] = $image->storeAs(
+                "private/admin/sales/packages/{$package->id}",
+                Str::uuid()->toString().'.'.$image->getClientOriginalExtension(),
+                ['disk' => 'local']
+            );
+        }
+
+        if (count($paths) > 0) {
+            $package->update([
+                'image_paths' => $paths,
+                'images_base64' => null,
+            ]);
+        }
 
         return redirect()
             ->route('admin.sales.packages.index')
@@ -114,11 +138,73 @@ class PackageController extends Controller
             abort(403, 'غير مصرح لك بتعديل هذه الباقة');
         }
 
-        $package->update($request->validated());
+        $data = $request->validated();
+
+        $retained = array_values(array_filter(
+            $data['retained_image_paths'] ?? [],
+            static fn ($v): bool => is_string($v) && $v !== ''
+        ));
+
+        unset($data['images'], $data['retained_image_paths']);
+
+        $existing = array_values(array_filter(
+            $package->image_paths ?? [],
+            static fn ($v): bool => is_string($v) && $v !== ''
+        ));
+
+        $retained = array_values(array_intersect($existing, $retained));
+        $toDelete = array_values(array_diff($existing, $retained));
+
+        foreach ($toDelete as $path) {
+            Storage::disk('local')->delete($path);
+        }
+
+        $paths = $retained;
+
+        /** @var array<int, UploadedFile> $images */
+        $images = $request->file('images', []);
+        foreach ($images as $image) {
+            $paths[] = $image->storeAs(
+                "private/admin/sales/packages/{$package->id}",
+                Str::uuid()->toString().'.'.$image->getClientOriginalExtension(),
+                ['disk' => 'local']
+            );
+        }
+
+        $data['image_paths'] = $paths;
+        $data['images_base64'] = null;
+
+        $package->update($data);
 
         return redirect()
             ->route('admin.sales.packages.index')
             ->with('success', 'تم تحديث الباقة بنجاح');
+    }
+
+    public function image(SalesPackage $package, string $image): HttpResponse
+    {
+        if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $paths = array_values(array_filter(
+            $package->image_paths ?? [],
+            static fn ($v): bool => is_string($v) && $v !== ''
+        ));
+
+        $match = collect($paths)->first(function (string $path) use ($image) {
+            return basename($path) === $image;
+        });
+
+        if (! $match) {
+            abort(404);
+        }
+
+        if (! Storage::disk('local')->exists($match)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('local')->path($match));
     }
 
     public function destroy(SalesPackage $package): RedirectResponse
@@ -126,6 +212,12 @@ class PackageController extends Controller
         // Check ownership unless admin
         if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
             abort(403, 'غير مصرح لك بحذف هذه الباقة');
+        }
+
+        foreach (array_values($package->image_paths ?? []) as $path) {
+            if (is_string($path) && $path !== '') {
+                Storage::disk('local')->delete($path);
+            }
         }
 
         $package->delete();

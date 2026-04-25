@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class SalesPackage extends Model
 {
@@ -21,6 +20,7 @@ class SalesPackage extends Model
         'location_description',
         'look_location_link',
         'images_base64',
+        'image_paths',
         'user_id',
     ];
 
@@ -28,6 +28,7 @@ class SalesPackage extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'images_base64' => 'array',
+        'image_paths' => 'array',
     ];
 
     public function category(): BelongsTo

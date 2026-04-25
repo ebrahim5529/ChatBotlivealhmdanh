@@ -37,6 +37,7 @@ type Package = {
     location_description: string | null;
     look_location_link: string | null;
     images_base64: string[] | null;
+    image_paths?: string[] | null;
 };
 
 type Props = {
@@ -50,16 +51,9 @@ const breadcrumbs = (id: number): BreadcrumbItem[] => [
     { title: 'تعديل العرض', href: `/admin/sales/packages/${id}/edit` },
 ];
 
-function readFileAsDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(reader.error ?? new Error('read failed'));
-        reader.readAsDataURL(file);
-    });
-}
-
 export default function PackageEdit({ package: pkg, categories }: Props) {
+    const initialPaths = Array.isArray(pkg.image_paths) ? pkg.image_paths.filter(Boolean) : [];
+
     const { data, setData, put, processing, errors } = useForm({
         offer_number: pkg.offer_number ?? '',
         category_id: pkg.category_id ? String(pkg.category_id) : '',
@@ -71,7 +65,8 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
         location_link: pkg.location_link ?? '',
         location_description: pkg.location_description ?? '',
         look_location_link: pkg.look_location_link ?? '',
-        images_base64: Array.isArray(pkg.images_base64) ? [...pkg.images_base64] : [],
+        retained_image_paths: initialPaths,
+        images: [] as File[],
     });
 
     const [imagesSizeError, setImagesSizeError] = useState<string | null>(null);
@@ -96,21 +91,30 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
             return;
         }
 
-        const encoded = await Promise.all(allowed.map((f) => readFileAsDataUrl(f)));
-        const merged = [...data.images_base64, ...encoded].slice(0, MAX_IMAGES);
-        setData('images_base64', merged);
+        const merged = [...data.images, ...allowed].slice(
+            0,
+            Math.max(0, MAX_IMAGES - data.retained_image_paths.length)
+        );
+        setData('images', merged);
     };
 
-    const removeImageAt = (index: number) => {
+    const removeRetainedImageAt = (index: number) => {
         setData(
-            'images_base64',
-            data.images_base64.filter((_, i) => i !== index),
+            'retained_image_paths',
+            data.retained_image_paths.filter((_, i) => i !== index),
+        );
+    };
+
+    const removeNewImageAt = (index: number) => {
+        setData(
+            'images',
+            data.images.filter((_, i) => i !== index),
         );
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/sales/packages/${pkg.id}`);
+        put(`/admin/sales/packages/${pkg.id}`, { forceFormData: true });
     };
 
     return (
@@ -282,20 +286,19 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="package_images_edit">صور العرض (Base64)</Label>
+                        <Label htmlFor="package_images_edit">صور العرض</Label>
                         <p className="text-xs text-muted-foreground">
-                            الصور المحفوظة والجديدة تظهر أدناه؛ احذف ما تشاء ثم احفظ. حتى {MAX_IMAGES}{' '}
-                            صورة.
+                            الصور المحفوظة والجديدة تظهر أدناه؛ احذف ما تشاء ثم احفظ. حتى {MAX_IMAGES} صورة.
                         </p>
-                        {data.images_base64.length > 0 && (
+                        {(data.retained_image_paths.length > 0 || data.images.length > 0) && (
                             <ul className="flex flex-wrap gap-3">
-                                {data.images_base64.map((src, index) => (
+                                {data.retained_image_paths.map((path, index) => (
                                     <li
-                                        key={`${index}-${src.slice(0, 48)}`}
+                                        key={`retained-${index}-${path}`}
                                         className="relative inline-block rounded-lg border border-gray-200 dark:border-gray-600"
                                     >
                                         <img
-                                            src={src}
+                                            src={`/admin/sales/packages/${pkg.id}/images/${encodeURIComponent(path.split('/').pop() ?? '')}`}
                                             alt=""
                                             className="h-24 w-24 rounded-lg object-cover"
                                         />
@@ -304,7 +307,30 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                                             variant="destructive"
                                             size="icon"
                                             className="absolute -right-2 -top-2 size-7 rounded-full shadow-md"
-                                            onClick={() => removeImageAt(index)}
+                                            onClick={() => removeRetainedImageAt(index)}
+                                            aria-label="إزالة الصورة"
+                                        >
+                                            <X className="size-3.5" />
+                                        </Button>
+                                    </li>
+                                ))}
+
+                                {data.images.map((file, index) => (
+                                    <li
+                                        key={`new-${index}-${file.name}-${file.size}`}
+                                        className="relative inline-block rounded-lg border border-gray-200 dark:border-gray-600"
+                                    >
+                                        <img
+                                            src={URL.createObjectURL(file)}
+                                            alt=""
+                                            className="h-24 w-24 rounded-lg object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute -right-2 -top-2 size-7 rounded-full shadow-md"
+                                            onClick={() => removeNewImageAt(index)}
                                             aria-label="إزالة الصورة"
                                         >
                                             <X className="size-3.5" />
@@ -333,7 +359,7 @@ export default function PackageEdit({ package: pkg, categories }: Props) {
                             />
                         </div>
                         <InputError message={imagesSizeError ?? undefined} />
-                        <InputError message={errors.images_base64} />
+                        <InputError message={errors.images} />
                     </div>
 
                     <div className="flex gap-2">

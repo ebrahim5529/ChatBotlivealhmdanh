@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('sales')->name('sales.')->group(function () {
         Route::resource('packages', PackageController::class);
+        Route::get('packages/{package}/images/{image}', [PackageController::class, 'image'])
+            ->name('packages.image');
         Route::resource('materials', MaterialController::class)->except(['show']);
     });
 
