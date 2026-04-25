@@ -306,6 +306,20 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                                             <Eye className="size-4" />
                                                         </Link>
                                                     </Button>
+                                                    {(pkg.image_paths?.length || pkg.images_base64?.length) ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            asChild
+                                                        >
+                                                            <Link
+                                                                href={`/admin/sales/packages/${pkg.id}#images`}
+                                                                aria-label="عرض صور العرض"
+                                                            >
+                                                                <ImageIcon className="size-4" />
+                                                            </Link>
+                                                        </Button>
+                                                    ) : null}
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -328,7 +342,7 @@ export default function PackagesIndex({ packages, categories, filters }: Props) 
                                                             </Button>
                                                         }
                                                         title="تأكيد الحذف"
-                                                        description="هل أنت متأكد من حذف هذا العرض؟ لا يمكن التراجع عن هذا الإجراء."
+                                                        description={`هل أنت متأكد من حذف هذا العرض${pkg.offer_number ? ` (رقم: ${pkg.offer_number})` : ''}؟ لا يمكن التراجع عن هذا الإجراء.`}
                                                         deleteUrl={`/admin/sales/packages/${pkg.id}`}
                                                     />
                                                 </div>

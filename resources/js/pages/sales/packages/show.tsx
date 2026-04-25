@@ -130,7 +130,7 @@ export default function PackageShow({ package: pkg }: Props) {
                                 </Button>
                             }
                             title="تأكيد الحذف"
-                            description="هل أنت متأكد من حذف هذا العرض؟ لا يمكن التراجع عن هذا الإجراء."
+                            description={`هل أنت متأكد من حذف هذا العرض${pkg.offer_number ? ` (رقم: ${pkg.offer_number})` : ''}؟ لا يمكن التراجع عن هذا الإجراء.`}
                             deleteUrl={`/admin/sales/packages/${pkg.id}`}
                         />
                     </div>
@@ -236,7 +236,10 @@ export default function PackageShow({ package: pkg }: Props) {
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+                        <div
+                            id="images"
+                            className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+                        >
                             <div className="flex items-center justify-between gap-3">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                                     الصور

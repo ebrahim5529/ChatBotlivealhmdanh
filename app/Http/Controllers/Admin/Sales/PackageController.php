@@ -9,7 +9,6 @@ use App\Models\MaterialCategory;
 use App\Models\SalesPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -181,7 +180,7 @@ class PackageController extends Controller
             ->with('success', 'تم تحديث الباقة بنجاح');
     }
 
-    public function image(SalesPackage $package, string $image): HttpResponse
+    public function image(SalesPackage $package, string $image)
     {
         if (! $this->isAdmin() && $package->user_id !== Auth::id()) {
             abort(403);
@@ -204,7 +203,7 @@ class PackageController extends Controller
             abort(404);
         }
 
-        return response()->file(Storage::disk('local')->path($match));
+        return Storage::disk('local')->response($match);
     }
 
     public function destroy(SalesPackage $package): RedirectResponse

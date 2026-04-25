@@ -77,3 +77,31 @@ test('updating a package replaces image_paths', function () {
     expect($package->image_paths[0])->toStartWith("private/admin/sales/packages/{$package->id}/");
     Storage::disk('local')->assertMissing($oldPath);
 });
+
+test('package images are served from protected admin route', function () {
+    Storage::fake('local');
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $category = MaterialCategory::query()->create(['name' => 'تصنيف']);
+
+    $package = SalesPackage::query()->create([
+        'category_id' => $category->id,
+        'user_id' => $user->id,
+        'offer_number' => 'IMG-ROUTE',
+        'details' => 'تفاصيل',
+        'image_paths' => ['private/admin/sales/packages/99/test.png'],
+    ]);
+
+    $path = "private/admin/sales/packages/{$package->id}/test.png";
+    $package->update(['image_paths' => [$path]]);
+    Storage::disk('local')->put($path, 'png-bytes');
+
+    $response = $this->get(route('admin.sales.packages.image', [
+        'package' => $package->id,
+        'image' => 'test.png',
+    ]));
+
+    $response->assertOk();
+});
